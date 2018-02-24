@@ -184,6 +184,7 @@ def main(_):
     # The training loop.
     for _ in range(FLAGS.num_batches):
       (features, labels) = _get_examples_batch()
+      print(len(features))
       [num_steps, loss, _] = sess.run(
           [global_step_tensor, loss_tensor, train_op],
           feed_dict={features_tensor: features, labels_tensor: labels})
