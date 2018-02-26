@@ -15,7 +15,7 @@ flags = tf.app.flags
 slim = tf.contrib.slim
 
 flags.DEFINE_boolean(
-    'train_vggish', True,
+    'train_vggish', False,
     'If Frue, allow VGGish parameters to change during training, thus '
     'fine-tuning VGGish. If False, VGGish parameters are fixed, thus using '
     'VGGish as a fixed feature extractor.')
@@ -112,6 +112,7 @@ def main(_):
 
     # The training loop.
     (features, labels) = _get_all_data()
+    print(np.shape(np.array(features)))
     batch_size = 15
     num_batches = round(len(features)/batch_size)
     for i in range(num_batches):
