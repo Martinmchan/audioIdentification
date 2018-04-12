@@ -38,10 +38,10 @@ def _folder_to_mel(path):
   return sound_examples
 
 def _get_all_data():
-	path = r"C:\Users\marti\Documents\NeuralNetworks\audioIdentification\train_data_scream"
+	path = "/home/martinch/Documents/audioIdentification/people_data"
 	scream_examples = _folder_to_mel(path)
 	scream_labels = np.array([[1, 0]] * scream_examples.shape[0])
-	path = r"C:\Users\marti\Documents\NeuralNetworks\audioIdentification\train_data_noise"
+	path = "/home/martinch/Documents/audioIdentification/noise_data"
 	noise_examples = _folder_to_mel(path)
 	noise_labels = np.array([[1, 0]] * noise_examples.shape[0])
 
@@ -114,7 +114,7 @@ def main(_):
     (features, labels) = _get_all_data()
     print(np.shape(np.array(features)))
     batch_size = 15
-    num_batches = round(len(features)/batch_size)
+    num_batches = int(round(len(features)/batch_size))
     for i in range(num_batches):
       [num_steps, loss, _] = sess.run(
           [global_step_tensor, loss_tensor, train_op],
