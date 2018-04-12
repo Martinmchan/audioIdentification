@@ -3,28 +3,36 @@ import tensorflow as tf
 import os, keras
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Flatten, Conv2D
+from sklearn.preprocessing import StandardScaler
 from keras import optimizers
 import vggish_input
 from random import shuffle
+import soundfile as sf
 
 
 def _folder_to_mel(path):
+  scaler = StandardScaler()
   os.chdir(path)
   files = os.listdir(".")
   sound_examples = vggish_input.wavfile_to_examples(files[0])
-  sound_examples = sound_examples.reshape(10,96,64,1)
+  for i in range(0, sound_examples.shape[0]):
+	sound_examples[i,:,:] = scaler.fit_transform(sound_examples[i,:,:])
+  sound_examples = sound_examples.reshape(sound_examples.shape[0],96,64,1)
   sound_examples = np.repeat(sound_examples,3,axis=3)
   for i in range(1,len(files)):
-  	print(1)
-  	temp_example = vggish_input.wavfile_to_examples(files[i])
-  	temp_example = temp_example.reshape(10,96,64,1)
-  	temp_example = np.repeat(temp_example,3,axis=3)
-  	sound_examples = np.concatenate((sound_examples, temp_example))
+	print(sf.SoundFile(files[i]).name)
+	if (sf.SoundFile(files[i]).subtype) == "PCM_16":  	
+		temp_example = vggish_input.wavfile_to_examples(files[i])
+		for j in range(0, temp_example.shape[0]):
+			temp_example[j,:,:] = scaler.fit_transform(temp_example[j,:,:])
+  		temp_example = temp_example.reshape(temp_example.shape[0],96,64,1)
+  		temp_example = np.repeat(temp_example,3,axis=3)
+  		sound_examples = np.concatenate((sound_examples, temp_example))
   return sound_examples
 
 
 def _get_all_data_and_label():
-	path = "/home/martinch/Documents/audioIdentification/noise_data"
+	path = "/home/martinch/Documents/UrbanSound8K/audio/fold1"
 	noise_examples = _folder_to_mel(path)
 	noise_labels = np.array([[1, 0]] * noise_examples.shape[0])
 	path = "/home/martinch/Documents/audioIdentification/people_data"
@@ -65,7 +73,8 @@ model = keras.models.Model(inputs= modelVGG.input, outputs= my_model(modelVGG.ou
 #for layer in model.layers[:16]:
 #    layer.trainable = False
 
-model.compile('rmsprop',
+opt = optimizers.Adam(lr = 0.0001, epsilon = 0.00000001)
+model.compile(opt,
           loss='binary_crossentropy',
           metrics=['accuracy'])
 
