@@ -2,7 +2,7 @@ import numpy as np
 import tensorflow as tf
 import os, keras
 from keras.models import Sequential
-from keras.layers import Dense, Activation, Flatten, Conv2D
+from keras.layers import Dense, Activation, Flatten, Conv2D, Dropout
 from sklearn.preprocessing import StandardScaler
 from keras import optimizers
 import vggish_input
@@ -14,6 +14,7 @@ def _folder_to_mel(path):
   scaler = StandardScaler()
   os.chdir(path)
   files = os.listdir(".")
+  print(files[0])
   sound_examples = vggish_input.wavfile_to_examples(files[0])
   for i in range(0, sound_examples.shape[0]):
 	sound_examples[i,:,:] = scaler.fit_transform(sound_examples[i,:,:])
@@ -32,15 +33,16 @@ def _folder_to_mel(path):
 
 
 def _get_all_data_and_label():
-	path = "/home/martinch/Documents/UrbanSound8K/audio/fold1"
-	noise_examples = _folder_to_mel(path)
-	noise_labels = np.array([[1, 0]] * noise_examples.shape[0])
-	path = "/home/martinch/Documents/audioIdentification/people_data"
-	people_examples = _folder_to_mel(path)
-	people_labels = np.array([[0, 1]] * people_examples.shape[0])
-
-	all_examples = np.concatenate((noise_examples, people_examples))
-	all_labels = np.concatenate((noise_labels, people_labels))
+	path = "/home/martinch/Documents/audioIdentification/gun_shot_8K"
+	gun_examples = _folder_to_mel(path)
+	gun_labels = np.array([[1, 0]] * gun_examples.shape[0])
+	print(gun_examples.shape[0])
+	path = "/home/martinch/Documents/audioIdentification/not_gun_8K"
+	not_gun_examples = _folder_to_mel(path)
+	not_gun_labels = np.array([[0, 1]] * not_gun_examples.shape[0])
+	print(not_gun_examples.shape[0])
+	all_examples = np.concatenate((gun_examples, not_gun_examples))
+	all_labels = np.concatenate((gun_labels, not_gun_labels))
 	labeled_examples = list(zip(all_examples, all_labels))
 	shuffle(labeled_examples)
 
@@ -59,10 +61,13 @@ modelVGG = keras.applications.vgg16.VGG16(include_top=False, weights='imagenet',
 
 my_model = Sequential()
 my_model.add(Dense(1024,input_shape=modelVGG.output_shape[1:]))
+my_model.add(Dropout(0.5))
 my_model.add(Activation('relu'))
 my_model.add(Dense(1024))
+my_model.add(Dropout(0.5))
 my_model.add(Activation('relu'))
 my_model.add(Dense(1024))
+my_model.add(Dropout(0.5))
 my_model.add(Activation('relu'))
 my_model.add(Dense(2))
 my_model.add(Activation('sigmoid'))
@@ -80,7 +85,8 @@ model.compile(opt,
 
 
 
-model.fit(data, labels, epochs = 20)
+model.fit(data, labels, epochs = 10)
+model.save("/home/martinch/Documents/audioIdentification/latest_model.h5")
 
 
 
