@@ -14,14 +14,12 @@ def _folder_to_mel(path):
   scaler = StandardScaler()
   os.chdir(path)
   files = os.listdir(".")
-  print(files[0])
   sound_examples = vggish_input.wavfile_to_examples(files[0])
   for i in range(0, sound_examples.shape[0]):
 	sound_examples[i,:,:] = scaler.fit_transform(sound_examples[i,:,:])
   sound_examples = sound_examples.reshape(sound_examples.shape[0],96,64,1)
   sound_examples = np.repeat(sound_examples,3,axis=3)
   for i in range(1,len(files)):
-	print(sf.SoundFile(files[i]).name)
 	if (sf.SoundFile(files[i]).subtype) == "PCM_16":  	
 		temp_example = vggish_input.wavfile_to_examples(files[i])
 		for j in range(0, temp_example.shape[0]):
@@ -33,11 +31,12 @@ def _folder_to_mel(path):
 
 
 def _get_all_data_and_label():
-	path = "/home/martinch/Documents/audioIdentification/gun_shot_8K"
+	path = "./audio_files/gun_shot_8K"
 	gun_examples = _folder_to_mel(path)
 	gun_labels = np.array([[1, 0]] * gun_examples.shape[0])
 	print(gun_examples.shape[0])
-	path = "/home/martinch/Documents/audioIdentification/not_gun_8K"
+	os.chdir("../../")
+	path = "./audio_files/not_gun_8K"
 	not_gun_examples = _folder_to_mel(path)
 	not_gun_labels = np.array([[0, 1]] * not_gun_examples.shape[0])
 	print(not_gun_examples.shape[0])
@@ -45,7 +44,6 @@ def _get_all_data_and_label():
 	all_labels = np.concatenate((gun_labels, not_gun_labels))
 	labeled_examples = list(zip(all_examples, all_labels))
 	shuffle(labeled_examples)
-
 	features = [example for (example, _) in labeled_examples]
 	labels = [label for (_, label) in labeled_examples]
 	return (features, labels)
@@ -60,16 +58,39 @@ modelVGG = keras.applications.vgg16.VGG16(include_top=False, weights='imagenet',
 
 
 my_model = Sequential()
-my_model.add(Dense(1024,input_shape=modelVGG.output_shape[1:]))
+
+#my_model.add(Dense(2,input_shape=modelVGG.output_shape[1:]))
+
+
+#my_model.add(Dense(2048,input_shape=modelVGG.output_shape[1:]))
+#my_model.add(Dropout(0.5))
+#my_model.add(Activation('relu'))
+#my_model.add(Dense(2048))
+#my_model.add(Dropout(0.5))
+#my_model.add(Activation('relu'))
+#my_model.add(Dense(2048))
+#my_model.add(Dropout(0.5))
+#my_model.add(Activation('relu'))
+#my_model.add(Dense(2))
+
+my_model.add(Dense(4096,input_shape=modelVGG.output_shape[1:]))
+my_model.add(Dropout(0.5))
+my_model.add(Activation('relu'))
+my_model.add(Dense(2048))
 my_model.add(Dropout(0.5))
 my_model.add(Activation('relu'))
 my_model.add(Dense(1024))
 my_model.add(Dropout(0.5))
 my_model.add(Activation('relu'))
-my_model.add(Dense(1024))
+my_model.add(Dense(512))
+my_model.add(Dropout(0.5))
+my_model.add(Activation('relu'))
+my_model.add(Dense(256))
 my_model.add(Dropout(0.5))
 my_model.add(Activation('relu'))
 my_model.add(Dense(2))
+
+
 my_model.add(Activation('sigmoid'))
 model = keras.models.Model(inputs= modelVGG.input, outputs= my_model(modelVGG.output))
 
@@ -85,8 +106,8 @@ model.compile(opt,
 
 
 
-model.fit(data, labels, epochs = 10)
-model.save("/home/martinch/Documents/audioIdentification/latest_model.h5")
+model.fit(data, labels, epochs = 5)
+model.save("../../DimModel.h5")
 
 
 

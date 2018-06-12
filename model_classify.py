@@ -10,7 +10,7 @@ import soundfile as sf
 
 def predict_all(model):
 	scaler = StandardScaler()
-	path = "/home/martinch/Documents/audioIdentification/testdata"
+	path = "./audio_files/testdata"
 	os.chdir(path)
 	files = os.listdir(".")
 	for i in range(0,len(files)):
@@ -26,11 +26,11 @@ def predict_all(model):
 				if prediction[i,0] > prediction[i,1]:
 					print("gun")
 				else:
-					print("not gun")
+					print("not_gun")
+				
 
 
-
-model = load_model("/home/martinch/Documents/audioIdentification/latest_model.h5")
+model = load_model("./model2048.h5")
 
 predict_all(model)
 
